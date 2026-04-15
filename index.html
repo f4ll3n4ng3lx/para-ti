@@ -18,6 +18,7 @@ body {
   color:#eaeaea;
 }
 
+/* HERO */
 .hero {
   height:100vh;
   display:flex;
@@ -36,6 +37,7 @@ body {
   max-width:900px;
 }
 
+/* SECCIONES */
 section {
   padding:80px 20px;
   max-width:900px;
@@ -86,14 +88,19 @@ section {
 }
 
 /* GALERÍA */
-.gallery img, .gallery video {
+.gallery {
+  transition: opacity 0.4s ease;
+}
+
+.gallery img,
+.gallery video {
   width:100%;
   max-height:500px;
   object-fit:cover;
   border-radius:20px;
   box-shadow:0 20px 60px rgba(0,0,0,0.6);
-  cursor:pointer;
   display:block;
+  cursor:pointer;
 }
 
 /* ANIMACIONES */
@@ -124,12 +131,10 @@ footer {
 
 <body>
 
-<!-- HERO -->
 <div class="hero">
   <h1>“I was blind before I saw the world through your eyes.”</h1>
 </div>
 
-<!-- VIDEO PRINCIPAL -->
 <section class="fade">
   <div class="video-container">
     <video controls autoplay muted playsinline>
@@ -138,20 +143,17 @@ footer {
   </div>
 </section>
 
-<!-- CARTA -->
 <section>
   <div class="letter fade">
     <h2>Para ti</h2>
 
     <p>Conocerte fue como empezar a ver colores donde antes no había…</p>
-    <p>Con el tiempo, todo fue tomando más sentido contigo.</p>
     <p>Hoy, al mirar todo lo que hemos vivido, solo puedo agradecer que sigas aquí, conmigo.</p>
     <p>Si alguna vez dudas de lo que significas para mí, vuelve aquí. 𖹭</p>
 
   </div>
 </section>
 
-<!-- GALERÍA -->
 <section class="fade">
   <div class="gallery" id="gallery"></div>
 </section>
@@ -161,7 +163,6 @@ footer {
 </footer>
 
 <script>
-// animaciones
 if ('IntersectionObserver' in window) {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -177,7 +178,6 @@ if ('IntersectionObserver' in window) {
   document.querySelectorAll('.fade').forEach(el => el.classList.add('visible'));
 }
 
-// GALERÍA (26 fotos + 1 video)
 const media = [
   ...Array.from({length: 26}, (_, i) => ({
     type: "image",
@@ -189,15 +189,25 @@ const media = [
 let current = 0;
 const container = document.getElementById("gallery");
 
+function fadeChange(newElement) {
+  container.style.opacity = 0;
+
+  setTimeout(() => {
+    container.innerHTML = "";
+    container.appendChild(newElement);
+    container.style.opacity = 1;
+  }, 200);
+}
+
 function renderMedia() {
   const item = media[current];
-  container.innerHTML = "";
 
   if (item.type === "image") {
     const img = document.createElement("img");
     img.src = item.src;
     img.onclick = next;
-    container.appendChild(img);
+    container.onclick = null;
+    fadeChange(img);
   }
 
   if (item.type === "video") {
@@ -207,8 +217,10 @@ function renderMedia() {
     video.autoplay = true;
     video.muted = true;
     video.playsInline = true;
-    video.onclick = next;
-    container.appendChild(video);
+
+    container.onclick = next;
+
+    fadeChange(video);
   }
 }
 
