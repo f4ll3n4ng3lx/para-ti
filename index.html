@@ -197,33 +197,39 @@ function fadeChange(newElement) {
 
 function renderMedia() {
   const item = media[current];
+  let element;
 
   if (item.type === "image") {
-    const img = document.createElement("img");
-    img.src = item.src;
-    img.onclick = next;
+    element = document.createElement("img");
+    element.src = item.src;
+    element.onclick = next;
     container.onclick = null;
-    fadeChange(img);
   }
 
   if (item.type === "video") {
-    const video = document.createElement("video");
+    element = document.createElement("video");
 
     const source = document.createElement("source");
     source.src = item.src;
     source.type = "video/mp4";
 
-    video.appendChild(source);
+    element.appendChild(source);
 
-    video.controls = true;
-    video.autoplay = true;
-    video.muted = true;
-    video.playsInline = true;
+    element.controls = true;
+    element.autoplay = true;
+    element.muted = true;
+    element.playsInline = true;
+
+    // FIX IMPORTANTE
+    element.style.width = "100%";
+    element.style.maxHeight = "500px";
+    element.style.objectFit = "contain";
+    element.style.background = "#000";
 
     container.onclick = next;
-
-    fadeChange(video);
   }
+
+  fadeChange(element);
 }
 
 function next() {
