@@ -18,6 +18,7 @@ body {
   color:#eaeaea;
 }
 
+/* HERO */
 .hero {
   height:100vh;
   display:flex;
@@ -35,18 +36,24 @@ body {
   max-width:800px;
 }
 
-/* secciones */
+/* SECCIONES */
 section {
   padding:80px 20px;
   max-width:900px;
   margin:auto;
 }
 
-/* video principal */
+/* VIDEO PRINCIPAL */
 .video-container {
   border-radius:20px;
   overflow:hidden;
   box-shadow:0 20px 60px rgba(0,0,0,0.6);
+}
+
+.video-hint {
+  text-align:center;
+  opacity:0.6;
+  margin-bottom:10px;
 }
 
 .video-container video {
@@ -55,21 +62,16 @@ section {
   display:block;
 }
 
-/* carta */
+/* CARTA */
+/* FIX #1: eliminada la animación propia de .letter,
+   ahora hereda todo de .fade sin conflicto */
 .letter {
   background:rgba(26,26,26,0.8);
   padding:40px;
   border-radius:20px;
   line-height:1.9;
+  -webkit-backdrop-filter:blur(6px); /* FIX #6: prefijo Safari */
   backdrop-filter:blur(6px);
-  opacity:0;
-  transform:translateY(40px);
-  transition:all 1.5s ease;
-}
-
-.letter.visible {
-  opacity:1;
-  transform:translateY(0);
 }
 
 .letter h2 {
@@ -77,11 +79,12 @@ section {
   margin-bottom:25px;
 }
 
-/* galería */
+/* GALERÍA */
 .gallery {
   display:flex;
   justify-content:center;
   align-items:center;
+  /* FIX #5: solo las propiedades que se animan, no "all" */
   transition:opacity 0.4s ease;
 }
 
@@ -92,14 +95,56 @@ section {
   border-radius:20px;
   box-shadow:0 20px 60px rgba(0,0,0,0.6);
   display:block;
-  cursor:pointer;
 }
 
-/* animaciones */
+/* FADE FINAL */
+#cinematicEnd {
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:#000;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+
+  opacity:0;
+  pointer-events:none;
+
+  transition:opacity 2.5s ease;
+  z-index:9999;
+}
+
+#cinematicEnd p {
+  font-family:'Playfair Display',serif;
+  font-size:1.6rem;
+  color:#eaeaea;
+  max-width:80%;
+
+  opacity:0;
+  transform:translateY(20px);
+  /* FIX #5: especificando propiedades explícitas */
+  transition:opacity 2s ease 1s, transform 2s ease 1s;
+}
+
+#cinematicEnd.show {
+  opacity:1;
+  pointer-events:all;
+}
+
+#cinematicEnd.show p {
+  opacity:1;
+  transform:translateY(0);
+}
+
+/* ANIMACIONES */
 .fade {
   opacity:0;
   transform:translateY(30px);
-  transition:all 1.2s ease;
+  /* FIX #5: propiedades explícitas en lugar de "all" */
+  transition:opacity 1.2s ease, transform 1.2s ease;
 }
 
 .fade.visible {
@@ -123,18 +168,23 @@ footer {
 <body>
 
 <div class="hero">
-  <h1>“I was blind before I saw the world through your eyes.”</h1>
+  <h1>"I was blind before I saw the world through your eyes."</h1>
 </div>
 
 <section class="fade">
   <div class="video-container">
-    <video controls autoplay muted playsinline>
+    <!-- FIX #10: estilo inline movido a clase CSS -->
+    <p class="video-hint">toca para reproducir</p>
+    <video controls playsinline>
       <source src="./video.mp4" type="video/mp4">
     </video>
   </div>
 </section>
 
 <section>
+  <!-- FIX #1: .letter ya no necesita clase "fade" duplicada;
+       la sección padre se puede animar con fade si se quiere,
+       pero el conflicto de transiciones queda resuelto -->
   <div class="letter fade">
     <h2>Para ti</h2>
     <p>Conocerte fue como empezar a ver colores donde antes no había…</p>
@@ -151,8 +201,17 @@ footer {
   <p>Gracias por existir.</p>
 </footer>
 
+<!-- FINAL CINEMÁTICO -->
+<div id="cinematicEnd">
+  <p>
+    Todo valió la pena...
+    <br><br>
+    porque me trajo a ti.
+  </p>
+</div>
+
 <script>
-// animaciones
+// Animaciones con IntersectionObserver
 if ('IntersectionObserver' in window) {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -168,11 +227,11 @@ if ('IntersectionObserver' in window) {
   document.querySelectorAll('.fade').forEach(el => el.classList.add('visible'));
 }
 
-// galería
+// Galería
 const media = [
-  ...Array.from({length: 26}, (_, i) => ({
+  ...Array.from({ length: 26 }, (_, i) => ({
     type: "image",
-    src: `foto${i+1}.jpg`
+    src: `foto${i + 1}.jpg`
   })),
   { type: "video", src: "./video1.mp4" }
 ];
@@ -187,30 +246,47 @@ function renderMedia() {
   setTimeout(() => {
     container.innerHTML = "";
 
-    let element;
+    // FIX #3: inicializado en null con guard antes del appendChild
+    let element = null;
 
     if (item.type === "image") {
       element = document.createElement("img");
       element.src = item.src;
-      element.onclick = next;
-      container.onclick = null;
+      element.alt = ""; // FIX #7: alt vacío para accesibilidad
+      element.loading = "eager"; // FIX #9: intención explícita de carga
     }
 
     if (item.type === "video") {
       element = document.createElement("video");
       element.src = item.src;
-
       element.controls = true;
       element.autoplay = true;
       element.muted = true;
       element.playsInline = true;
 
-      container.onclick = next;
+      element.onended = () => {
+        document.getElementById("cinematicEnd").classList.add("show");
+      };
     }
 
-    container.appendChild(element);
-    container.style.opacity = 1;
+    // FIX #2 + #4: un solo listener en el container para toda la lógica
+    // de navegación. Para videos, el click en controles no debe avanzar,
+    // así que solo avanzamos si el click fue directo en el container
+    // o en una imagen (no en los controles del video).
+    container.onclick = (e) => {
+      if (item.type === "image") {
+        next();
+      } else if (item.type === "video" && e.target === container) {
+        // solo avanza si toca fuera de los controles del video
+        next();
+      }
+    };
 
+    if (element !== null) {
+      container.appendChild(element);
+    }
+
+    container.style.opacity = 1;
   }, 200);
 }
 
