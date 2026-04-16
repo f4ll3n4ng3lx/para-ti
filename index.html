@@ -40,7 +40,6 @@ section {
   margin:auto;
 }
 
-/* VIDEO */
 .video-container {
   border-radius:20px;
   overflow:hidden;
@@ -53,7 +52,6 @@ section {
   display:block;
 }
 
-/* CARTA */
 .letter {
   background:rgba(26,26,26,0.8);
   padding:40px;
@@ -67,7 +65,6 @@ section {
   margin-bottom:25px;
 }
 
-/* GALERÍA */
 .gallery {
   display:flex;
   justify-content:center;
@@ -83,7 +80,6 @@ section {
   display:block;
 }
 
-/* FINAL */
 #cinematicEnd {
   position:fixed;
   inset:0;
@@ -183,7 +179,7 @@ footer {
 </div>
 
 <script>
-/* fade in sections */
+/* fade sections */
 if ('IntersectionObserver' in window) {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -199,36 +195,29 @@ if ('IntersectionObserver' in window) {
   document.querySelectorAll('.fade').forEach(el => el.classList.add('visible'));
 }
 
-/* audio control */
+/* audio logic sin fade */
 const video = document.getElementById("mainVideo");
 const music = document.getElementById("bgMusic");
 
-function startMusicFade(reset = false) {
-  if (reset) music.currentTime = 0;
+let musicStarted = false;
+let videoEnded = false;
 
-  music.play().catch(() => {});
-
-  music.volume = 0;
-  let vol = 0;
-
-  const fade = setInterval(() => {
-    if (vol < 1) {
-      vol += 0.02;
-      music.volume = Math.min(vol, 1);
-    } else {
-      clearInterval(fade);
-    }
-  }, 80);
-}
-
-let hasStartedOnce = false;
+video.addEventListener("ended", () => {
+  videoEnded = true;
+});
 
 video.addEventListener("play", () => {
-  if (!hasStartedOnce) {
-    startMusicFade(false);
-    hasStartedOnce = true;
-  } else {
-    startMusicFade(true);
+  if (!musicStarted) {
+    music.play().catch(() => {});
+    musicStarted = true;
+    videoEnded = false;
+    return;
+  }
+
+  if (videoEnded) {
+    music.currentTime = 0;
+    music.play().catch(() => {});
+    videoEnded = false;
   }
 });
 
