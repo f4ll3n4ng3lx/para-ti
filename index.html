@@ -18,6 +18,7 @@ body {
   color:#eaeaea;
 }
 
+/* HERO */
 .hero {
   height:100vh;
   display:flex;
@@ -25,6 +26,7 @@ body {
   align-items:center;
   background:radial-gradient(circle at center,#1a1a1a,#0d0d0d);
   text-align:center;
+  animation:fadeIn 2s ease;
   padding:20px;
 }
 
@@ -34,16 +36,24 @@ body {
   max-width:800px;
 }
 
+/* SECCIONES */
 section {
   padding:80px 20px;
   max-width:900px;
   margin:auto;
 }
 
+/* VIDEO PRINCIPAL */
 .video-container {
   border-radius:20px;
   overflow:hidden;
   box-shadow:0 20px 60px rgba(0,0,0,0.6);
+}
+
+.video-hint {
+  text-align:center;
+  opacity:0.6;
+  margin-bottom:10px;
 }
 
 .video-container video {
@@ -52,11 +62,13 @@ section {
   display:block;
 }
 
+/* CARTA */
 .letter {
   background:rgba(26,26,26,0.8);
   padding:40px;
   border-radius:20px;
   line-height:1.9;
+  -webkit-backdrop-filter:blur(6px);
   backdrop-filter:blur(6px);
 }
 
@@ -65,6 +77,7 @@ section {
   margin-bottom:25px;
 }
 
+/* GALERÍA */
 .gallery {
   display:flex;
   justify-content:center;
@@ -75,14 +88,19 @@ section {
 .gallery img,
 .gallery video {
   max-width:100%;
+  height:auto;
   border-radius:20px;
   box-shadow:0 20px 60px rgba(0,0,0,0.6);
   display:block;
 }
 
+/* FADE FINAL */
 #cinematicEnd {
   position:fixed;
-  inset:0;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
   background:#000;
   display:flex;
   justify-content:center;
@@ -91,6 +109,7 @@ section {
 
   opacity:0;
   pointer-events:none;
+
   transition:opacity 2.5s ease;
   z-index:9999;
 }
@@ -100,6 +119,7 @@ section {
   font-size:1.4rem;
   color:#eaeaea;
   max-width:80%;
+
   opacity:0;
   transform:translateY(20px);
   transition:opacity 2s ease 1s, transform 2s ease 1s;
@@ -115,6 +135,7 @@ section {
   transform:translateY(0);
 }
 
+/* ANIMACIONES */
 .fade {
   opacity:0;
   transform:translateY(30px);
@@ -131,6 +152,11 @@ footer {
   padding:60px 20px;
   opacity:0.6;
 }
+
+@keyframes fadeIn {
+  from {opacity:0;}
+  to {opacity:1;}
+}
 </style>
 </head>
 
@@ -138,17 +164,14 @@ footer {
 
 <!-- si estás leyendo esto, te amo, Nico. mwah! -->
 
-<audio id="bgMusic" loop>
-  <source src="./lana.mp3" type="audio/mpeg">
-</audio>
-
 <div class="hero">
   <h1>“I was blind before I saw the world through your eyes.”</h1>
 </div>
 
 <section class="fade">
   <div class="video-container">
-    <video id="mainVideo" controls playsinline>
+    <p class="video-hint">toca para reproducir</p>
+    <video controls playsinline>
       <source src="./video.mp4" type="video/mp4">
     </video>
   </div>
@@ -173,13 +196,13 @@ footer {
 
 <div id="cinematicEnd">
   <p>
-    Todo valió la pena…<br><br>
+    Todo valió la pena…
+    <br><br>
     porque me trajo a ti
   </p>
 </div>
 
 <script>
-/* fade sections */
 if ('IntersectionObserver' in window) {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -195,48 +218,6 @@ if ('IntersectionObserver' in window) {
   document.querySelectorAll('.fade').forEach(el => el.classList.add('visible'));
 }
 
-/* AUDIO CONTROL (estable y no agresivo) */
-const video = document.getElementById("mainVideo");
-const music = document.getElementById("bgMusic");
-
-let musicStarted = false;
-let videoEnded = false;
-
-video.addEventListener("play", () => {
-  if (!musicStarted) {
-    music.play().catch(() => {});
-    musicStarted = true;
-    videoEnded = false;
-    return;
-  }
-
-  if (videoEnded) {
-    music.currentTime = 0;
-    music.play().catch(() => {});
-    videoEnded = false;
-    return;
-  }
-
-  music.play().catch(() => {});
-});
-
-video.addEventListener("pause", () => {
-  music.pause();
-});
-
-video.addEventListener("ended", () => {
-  videoEnded = true;
-  music.pause();
-});
-
-/* solo corrige cuando el usuario hace seek manual */
-video.addEventListener("seeked", () => {
-  if (musicStarted && !videoEnded) {
-    music.currentTime = video.currentTime;
-  }
-});
-
-/* gallery */
 const media = [
   ...Array.from({ length: 26 }, (_, i) => ({
     type: "image",
@@ -255,30 +236,40 @@ function renderMedia() {
   setTimeout(() => {
     container.innerHTML = "";
 
-    let el;
+    let element = null;
 
     if (item.type === "image") {
-      el = document.createElement("img");
-      el.src = item.src;
-      el.loading = "lazy";
+      element = document.createElement("img");
+      element.src = item.src;
+      element.alt = "";
+      element.loading = "lazy";
     }
 
     if (item.type === "video") {
-      el = document.createElement("video");
-      el.src = item.src;
-      el.controls = true;
-      el.autoplay = true;
-      el.muted = true;
-      el.playsInline = true;
+      element = document.createElement("video");
+      element.src = item.src;
+      element.controls = true;
+      element.autoplay = true;
+      element.muted = true;
+      element.playsInline = true;
 
-      el.onended = () => {
+      element.onended = () => {
         document.getElementById("cinematicEnd").classList.add("show");
       };
     }
 
-    container.onclick = () => next();
+    container.onclick = (e) => {
+      if (item.type === "image") {
+        next();
+      } else if (item.type === "video" && e.target === container) {
+        next();
+      }
+    };
 
-    container.appendChild(el);
+    if (element !== null) {
+      container.appendChild(element);
+    }
+
     container.style.opacity = 1;
   }, 200);
 }
