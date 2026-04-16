@@ -18,7 +18,6 @@ body {
   color:#eaeaea;
 }
 
-/* HERO */
 .hero {
   height:100vh;
   display:flex;
@@ -35,7 +34,6 @@ body {
   max-width:800px;
 }
 
-/* SECCIONES */
 section {
   padding:80px 20px;
   max-width:900px;
@@ -185,7 +183,7 @@ footer {
 </div>
 
 <script>
-/* fade sections */
+/* fade in sections */
 if ('IntersectionObserver' in window) {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -201,11 +199,13 @@ if ('IntersectionObserver' in window) {
   document.querySelectorAll('.fade').forEach(el => el.classList.add('visible'));
 }
 
-/* audio: play + fade in when video plays */
+/* audio control */
 const video = document.getElementById("mainVideo");
 const music = document.getElementById("bgMusic");
 
-video.addEventListener("play", () => {
+function startMusicFade(reset = false) {
+  if (reset) music.currentTime = 0;
+
   music.play().catch(() => {});
 
   music.volume = 0;
@@ -219,6 +219,17 @@ video.addEventListener("play", () => {
       clearInterval(fade);
     }
   }, 80);
+}
+
+let hasStartedOnce = false;
+
+video.addEventListener("play", () => {
+  if (!hasStartedOnce) {
+    startMusicFade(false);
+    hasStartedOnce = true;
+  } else {
+    startMusicFade(true);
+  }
 });
 
 /* gallery */
